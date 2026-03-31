@@ -7,66 +7,122 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
+:root {
+  --bg: #0e0e11;
+  --bg2: #16161a;
+  --bg3: #1e1e24;
+  --bg4: #26262e;
+  --border: rgba(255,255,255,0.07);
+  --border2: rgba(255,255,255,0.12);
+  --text: #f0f0f2;
+  --text2: #8b8b99;
+  --text3: #55555f;
+  --green: #22c87a;
+  --green-dim: rgba(34,200,122,0.12);
+  --red: #ff5f57;
+  --red-dim: rgba(255,95,87,0.12);
+  --blue: #4f9eff;
+  --blue-dim: rgba(79,158,255,0.12);
+  --purple: #a78bfa;
+  --purple-dim: rgba(167,139,250,0.12);
+  --amber: #f59e0b;
+  --radius: 12px;
+  --radius-sm: 8px;
+}
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f0; color: #1a1a1a; font-size: 15px; }
-.app { max-width: 800px; margin: 0 auto; padding: 1rem; }
-h1 { font-size: 20px; font-weight: 600; margin-bottom: 1.5rem; }
-.month-nav { display: flex; align-items: center; gap: 12px; margin-bottom: 1.5rem; }
-.month-nav span { font-size: 16px; font-weight: 500; flex: 1; text-align: center; }
-.metrics { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 1.5rem; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); font-size: 15px; min-height: 100vh; }
+.app { max-width: 800px; margin: 0 auto; padding: 1.25rem 1rem 3rem; }
+
+h1 { font-size: 18px; font-weight: 600; color: var(--text); letter-spacing: -0.3px; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 8px; }
+h1::before { content: ''; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--green); box-shadow: 0 0 8px var(--green); }
+
+.month-nav { display: flex; align-items: center; gap: 10px; margin-bottom: 1.25rem; }
+.month-nav span { font-size: 15px; font-weight: 500; flex: 1; text-align: center; color: var(--text); }
+
+.metrics { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 1.25rem; }
 @media(min-width:500px){ .metrics { grid-template-columns: repeat(4, 1fr); } }
-.metric { background: #fff; border-radius: 10px; padding: 14px 16px; border: 0.5px solid #e0e0d8; }
-.metric-label { font-size: 12px; color: #888; margin-bottom: 4px; }
-.metric-value { font-size: 20px; font-weight: 600; }
-.tabs { display: flex; gap: 4px; margin-bottom: 1.5rem; border-bottom: 1px solid #e0e0d8; overflow-x: auto; }
-.tab { padding: 8px 14px; font-size: 14px; cursor: pointer; border: none; background: none; color: #888; border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap; }
-.tab.active { color: #1a1a1a; font-weight: 500; border-bottom: 2px solid #1a1a1a; }
+.metric { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; }
+.metric-label { font-size: 11px; color: var(--text3); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+.metric-value { font-size: 20px; font-weight: 600; letter-spacing: -0.5px; }
+
+.tabs { display: flex; gap: 2px; margin-bottom: 1.25rem; background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 4px; overflow-x: auto; }
+.tab { padding: 7px 16px; font-size: 13px; cursor: pointer; border: none; background: none; color: var(--text2); border-radius: var(--radius-sm); white-space: nowrap; font-weight: 500; transition: all 0.15s; }
+.tab:hover { color: var(--text); background: var(--bg3); }
+.tab.active { color: var(--text); background: var(--bg4); }
 .section { display: none; }
 .section.active { display: block; }
-.card { background: #fff; border: 0.5px solid #e0e0d8; border-radius: 12px; padding: 1.25rem; margin-bottom: 1rem; }
-.card-title { font-size: 15px; font-weight: 500; margin-bottom: 1rem; }
+
+.card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem; margin-bottom: 1rem; }
+.card-title { font-size: 11px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 1rem; }
+
 .form-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 10px; }
 .form-row.three { grid-template-columns: repeat(3, 1fr); }
 @media(max-width:480px){ .form-row.three { grid-template-columns: repeat(2, 1fr); } }
-.form-group { display: flex; flex-direction: column; gap: 4px; }
-.form-group label { font-size: 12px; color: #888; }
-input, select { width: 100%; padding: 9px 11px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; background: #fff; color: #1a1a1a; }
-input:focus, select:focus { outline: none; border-color: #888; }
-.btn { padding: 10px 20px; border-radius: 8px; border: 1px solid #ddd; background: #fff; color: #1a1a1a; font-size: 14px; cursor: pointer; font-weight: 500; }
-.btn:hover { background: #f5f5f0; }
-.btn-primary { background: #185FA5; color: #fff; border-color: #185FA5; }
-.btn-primary:hover { background: #0C447C; }
+.form-group { display: flex; flex-direction: column; gap: 5px; }
+.form-group label { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; }
+input, select {
+  width: 100%; padding: 9px 12px;
+  border: 1px solid var(--border2);
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  background: var(--bg3);
+  color: var(--text);
+  appearance: none;
+}
+input::placeholder { color: var(--text3); }
+input:focus, select:focus { outline: none; border-color: var(--blue); background: var(--bg4); }
+select option { background: #1e1e24; }
+
+.btn { padding: 9px 18px; border-radius: var(--radius-sm); border: 1px solid var(--border2); background: var(--bg3); color: var(--text); font-size: 13px; cursor: pointer; font-weight: 500; transition: all 0.15s; }
+.btn:hover { background: var(--bg4); }
+.btn:active { transform: scale(0.97); }
+.btn-primary { background: var(--blue); color: #fff; border-color: var(--blue); }
+.btn-primary:hover { background: #3a8ff0; border-color: #3a8ff0; }
 .btn-sm { padding: 4px 10px; font-size: 12px; }
-.btn-danger { color: #D85A30; border-color: #D85A30; background: #fff; }
-.type-toggle { display: flex; gap: 8px; margin-bottom: 1rem; }
-.type-btn { padding: 8px 18px; border-radius: 8px; border: 1px solid #ddd; background: #f5f5f0; color: #888; font-size: 13px; cursor: pointer; }
-.type-btn.active-income { background: #E1F5EE; color: #0F6E56; border-color: #1D9E75; font-weight: 500; }
-.type-btn.active-expense { background: #FAECE7; color: #993C1D; border-color: #D85A30; font-weight: 500; }
-.tx-list { display: flex; flex-direction: column; gap: 6px; }
-.tx-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: #f9f9f6; border-radius: 8px; }
-.tx-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.btn-danger { color: var(--red); border-color: transparent; background: transparent; }
+.btn-danger:hover { background: var(--red-dim); }
+
+.type-toggle { display: flex; gap: 4px; margin-bottom: 1.25rem; background: var(--bg3); border-radius: var(--radius-sm); padding: 4px; }
+.type-btn { flex: 1; padding: 8px; border-radius: 6px; border: none; background: none; color: var(--text2); font-size: 13px; cursor: pointer; font-weight: 500; transition: all 0.15s; text-align: center; }
+.type-btn.active-income { background: var(--green-dim); color: var(--green); }
+.type-btn.active-expense { background: var(--red-dim); color: var(--red); }
+
+.tx-list { display: flex; flex-direction: column; gap: 4px; }
+.tx-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: var(--bg3); border-radius: var(--radius-sm); border: 1px solid var(--border); transition: border-color 0.15s; }
+.tx-item:hover { border-color: var(--border2); }
+.tx-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
 .tx-info { flex: 1; min-width: 0; }
-.tx-desc { font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.tx-meta { font-size: 12px; color: #888; }
-.tx-amount { font-size: 15px; font-weight: 500; flex-shrink: 0; }
-.tx-del { background: none; border: none; color: #bbb; cursor: pointer; font-size: 18px; padding: 0 4px; }
-.tx-del:hover { color: #D85A30; }
-.empty { text-align: center; color: #bbb; font-size: 14px; padding: 2rem; }
-.bar-wrap { margin-bottom: 12px; }
-.bar-label { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 4px; }
-.bar-bg { background: #f0f0ec; border-radius: 4px; height: 8px; overflow: hidden; }
-.bar-fill { height: 8px; border-radius: 4px; transition: width 0.4s; }
-.badge { display: inline-block; font-size: 11px; padding: 2px 7px; border-radius: 6px; font-weight: 500; }
-.badge-fijo { background: #E6F1FB; color: #185FA5; }
-.badge-variable { background: #FAEEDA; color: #854F0B; }
-.member-tag { display: inline-block; font-size: 11px; padding: 2px 7px; border-radius: 6px; background: #EEEDFE; color: #3C3489; font-weight: 500; }
-.goal-item { margin-bottom: 16px; }
-.goal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
-.goal-name { font-size: 14px; font-weight: 500; }
+.tx-desc { font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text); }
+.tx-meta { font-size: 11px; color: var(--text3); margin-top: 3px; display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
+.tx-amount { font-size: 14px; font-weight: 600; flex-shrink: 0; letter-spacing: -0.3px; }
+.tx-del { background: none; border: none; color: var(--text3); cursor: pointer; font-size: 16px; padding: 2px 6px; border-radius: 4px; transition: all 0.15s; }
+.tx-del:hover { color: var(--red); background: var(--red-dim); }
+
+.empty { text-align: center; color: var(--text3); font-size: 14px; padding: 2.5rem; }
+
+.bar-wrap { margin-bottom: 14px; }
+.bar-label { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 5px; color: var(--text); }
+.bar-label span:last-child { color: var(--text2); font-size: 12px; }
+.bar-bg { background: var(--bg4); border-radius: 4px; height: 6px; overflow: hidden; }
+.bar-fill { height: 6px; border-radius: 4px; transition: width 0.5s cubic-bezier(.4,0,.2,1); }
+
+.badge { display: inline-block; font-size: 10px; padding: 2px 7px; border-radius: 20px; font-weight: 600; }
+.badge-fijo { background: var(--blue-dim); color: var(--blue); }
+.badge-variable { background: rgba(245,158,11,0.12); color: var(--amber); }
+.member-tag { display: inline-block; font-size: 10px; padding: 2px 7px; border-radius: 20px; background: var(--purple-dim); color: var(--purple); font-weight: 600; }
+
+.goal-item { margin-bottom: 18px; }
+.goal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.goal-name { font-size: 14px; font-weight: 500; color: var(--text); }
+
 .chart-wrap { position: relative; width: 100%; height: 220px; }
-.toast { position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%); background: #1a1a1a; color: #fff; padding: 10px 20px; border-radius: 8px; font-size: 13px; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 999; }
+
+.toast { position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%); background: var(--bg4); color: var(--text); border: 1px solid var(--border2); padding: 10px 20px; border-radius: 20px; font-size: 13px; opacity: 0; transition: opacity 0.25s; pointer-events: none; z-index: 999; white-space: nowrap; }
 .toast.show { opacity: 1; }
-.loading { text-align: center; color: #888; font-size: 14px; padding: 2rem; }
+
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--bg4); border-radius: 4px; }
 </style>
 </head>
 <body>
@@ -80,8 +136,8 @@ input:focus, select:focus { outline: none; border-color: #888; }
   </div>
 
   <div class="metrics">
-    <div class="metric"><div class="metric-label">Ingresos</div><div class="metric-value" id="m-income" style="color:#1D9E75">$0</div></div>
-    <div class="metric"><div class="metric-label">Gastos</div><div class="metric-value" id="m-expense" style="color:#D85A30">$0</div></div>
+    <div class="metric"><div class="metric-label">Ingresos</div><div class="metric-value" id="m-income" style="color:#22c87a">$0</div></div>
+    <div class="metric"><div class="metric-label">Gastos</div><div class="metric-value" id="m-expense" style="color:#ff5f57">$0</div></div>
     <div class="metric"><div class="metric-label">Ahorro</div><div class="metric-value" id="m-saving">$0</div></div>
     <div class="metric"><div class="metric-label">Balance</div><div class="metric-value" id="m-balance">$0</div></div>
   </div>
@@ -115,7 +171,7 @@ input:focus, select:focus { outline: none; border-color: #888; }
           <select id="f-kind"><option value="fijo">Fijo</option><option value="variable">Variable</option></select>
         </div>
         <div class="form-group"><label>Persona</label>
-          <select id="f-member"><option>Yo</option><option>Pareja</option><option>Compartido</option></select>
+          <select id="f-member"><option>Hugo</option><option>Romi</option><option>Compartido</option></select>
         </div>
       </div>
       <div class="form-row" id="ingreso-fields" style="display:none">
@@ -123,10 +179,10 @@ input:focus, select:focus { outline: none; border-color: #888; }
           <select id="f-source"><option>Sueldo</option><option>Freelance</option><option>Negocio</option><option>Inversión</option><option>Otro</option></select>
         </div>
         <div class="form-group"><label>Persona</label>
-          <select id="f-member2"><option>Yo</option><option>Pareja</option></select>
+          <select id="f-member2"><option>Hugo</option><option>Romi</option></select>
         </div>
       </div>
-      <button class="btn btn-primary" onclick="addTransaction()" style="width:100%;margin-top:6px" id="save-btn">Guardar</button>
+      <button class="btn btn-primary" onclick="addTransaction()" style="width:100%;margin-top:10px" id="save-btn">Guardar</button>
     </div>
   </div>
 
@@ -134,7 +190,7 @@ input:focus, select:focus { outline: none; border-color: #888; }
     <div class="card">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
         <span class="card-title" style="margin:0">Movimientos del mes</span>
-        <select id="filter-cat" style="width:auto;font-size:13px" onchange="renderTransactions()">
+        <select id="filter-cat" style="width:auto;font-size:12px" onchange="renderTransactions()">
           <option value="">Todas</option>
           <option>Alimentación</option><option>Transporte</option><option>Vivienda</option>
           <option>Salud</option><option>Educación</option><option>Entretenimiento</option>
@@ -142,12 +198,12 @@ input:focus, select:focus { outline: none; border-color: #888; }
           <option>Sueldo</option><option>Freelance</option><option>Negocio</option><option>Inversión</option>
         </select>
       </div>
-      <div class="tx-list" id="tx-list"><div class="loading">Cargando...</div></div>
+      <div class="tx-list" id="tx-list"><div class="empty">Cargando...</div></div>
     </div>
   </div>
 
   <div id="tab-resumen" class="section">
-    <div class="card"><div class="card-title">Gastos por categoría</div><div id="cat-bars"></div></div>
+    <div class="card"><div class="card-title">Por categoría</div><div id="cat-bars"></div></div>
     <div class="card"><div class="card-title">Fijos vs variables</div><div id="kind-bars"></div></div>
     <div class="card"><div class="card-title">Por persona</div><div id="member-bars"></div></div>
     <div class="card"><div class="card-title">Últimos 6 meses</div><div class="chart-wrap"><canvas id="trend-chart"></canvas></div></div>
@@ -160,9 +216,9 @@ input:focus, select:focus { outline: none; border-color: #888; }
         <div class="form-group"><label>Nombre</label><input type="text" id="g-name" placeholder="ej. Vacaciones"></div>
         <div class="form-group"><label>Objetivo ($)</label><input type="number" id="g-target" placeholder="0"></div>
       </div>
-      <button class="btn btn-primary" onclick="addGoal()" style="width:100%">Agregar meta</button>
+      <button class="btn btn-primary" onclick="addGoal()" style="width:100%;margin-top:4px">Agregar meta</button>
     </div>
-    <div class="card"><div class="card-title">Mis metas</div><div id="goal-list"><div class="loading">Cargando...</div></div></div>
+    <div class="card"><div class="card-title">Mis metas</div><div id="goal-list"><div class="empty">Cargando...</div></div></div>
   </div>
 </div>
 
@@ -181,10 +237,10 @@ let allGoals = [];
 let trendChart = null;
 
 const COLORS = {
-  'Alimentación':'#1D9E75','Transporte':'#378ADD','Vivienda':'#7F77DD',
-  'Salud':'#D85A30','Educación':'#185FA5','Entretenimiento':'#BA7517',
-  'Ropa':'#D4537E','Servicios':'#888780','Ahorro':'#639922','Otro':'#888780',
-  'Sueldo':'#1D9E75','Freelance':'#0F6E56','Negocio':'#3C3489','Inversión':'#185FA5'
+  'Alimentación':'#22c87a','Transporte':'#4f9eff','Vivienda':'#a78bfa',
+  'Salud':'#ff5f57','Educación':'#4f9eff','Entretenimiento':'#f59e0b',
+  'Ropa':'#f472b6','Servicios':'#6b7280','Ahorro':'#22c87a','Otro':'#6b7280',
+  'Sueldo':'#22c87a','Freelance':'#22c87a','Negocio':'#a78bfa','Inversión':'#4f9eff'
 };
 
 function monthKey(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`; }
@@ -230,8 +286,8 @@ function renderMetrics() {
   document.getElementById('m-expense').textContent = fmt(expense);
   document.getElementById('m-saving').textContent = fmt(saving);
   document.getElementById('m-balance').textContent = fmt(saving);
-  document.getElementById('m-saving').style.color = saving >= 0 ? '#1D9E75' : '#D85A30';
-  document.getElementById('m-balance').style.color = saving >= 0 ? '#1D9E75' : '#D85A30';
+  document.getElementById('m-saving').style.color = saving >= 0 ? '#22c87a' : '#ff5f57';
+  document.getElementById('m-balance').style.color = saving >= 0 ? '#22c87a' : '#ff5f57';
 }
 
 function renderTransactions() {
@@ -242,12 +298,16 @@ function renderTransactions() {
   if (!txs.length) { el.innerHTML = '<div class="empty">Sin movimientos este mes</div>'; return; }
   el.innerHTML = txs.map(t => `
     <div class="tx-item">
-      <div class="tx-dot" style="background:${t.type==='ingreso'?'#1D9E75':'#D85A30'}"></div>
+      <div class="tx-dot" style="background:${t.type==='ingreso'?'#22c87a':'#ff5f57'}"></div>
       <div class="tx-info">
         <div class="tx-desc">${t.descripcion}</div>
-        <div class="tx-meta">${t.cat}${t.kind ? ` &nbsp;·&nbsp; <span class="badge badge-${t.kind}">${t.kind}</span>` : ''} &nbsp;<span class="member-tag">${t.member}</span></div>
+        <div class="tx-meta">
+          <span>${t.cat}</span>
+          ${t.kind ? `<span class="badge badge-${t.kind}">${t.kind}</span>` : ''}
+          <span class="member-tag">${t.member}</span>
+        </div>
       </div>
-      <div class="tx-amount" style="color:${t.type==='ingreso'?'#1D9E75':'#D85A30'}">${t.type==='ingreso'?'+':'−'}${fmt(t.amount)}</div>
+      <div class="tx-amount" style="color:${t.type==='ingreso'?'#22c87a':'#ff5f57'}">${t.type==='ingreso'?'+':'−'}${fmt(t.amount)}</div>
       <button class="tx-del" onclick="deleteTransaction(${t.id})">×</button>
     </div>`).join('');
 }
@@ -255,7 +315,7 @@ function renderTransactions() {
 function renderBar(label, value, max, color) {
   const pct = max > 0 ? Math.min(100, Math.round(value/max*100)) : 0;
   return `<div class="bar-wrap">
-    <div class="bar-label"><span>${label}</span><span style="color:#888">${fmt(value)} <span style="font-size:11px">(${pct}%)</span></span></div>
+    <div class="bar-label"><span>${label}</span><span>${fmt(value)} <span style="font-size:11px;opacity:.5">${pct}%</span></span></div>
     <div class="bar-bg"><div class="bar-fill" style="width:${pct}%;background:${color}"></div></div>
   </div>`;
 }
@@ -267,16 +327,16 @@ function renderResumen() {
   txs.forEach(t => { bycat[t.cat] = (bycat[t.cat]||0) + Number(t.amount); });
   const catEl = document.getElementById('cat-bars');
   catEl.innerHTML = Object.keys(bycat).length
-    ? Object.entries(bycat).sort((a,b)=>b[1]-a[1]).map(([c,v])=>renderBar(c,v,total,COLORS[c]||'#888')).join('')
+    ? Object.entries(bycat).sort((a,b)=>b[1]-a[1]).map(([c,v])=>renderBar(c,v,total,COLORS[c]||'#6b7280')).join('')
     : '<div class="empty">Sin gastos este mes</div>';
   const fijo = txs.filter(t=>t.kind==='fijo').reduce((s,t)=>s+Number(t.amount),0);
   const variable = txs.filter(t=>t.kind==='variable').reduce((s,t)=>s+Number(t.amount),0);
-  document.getElementById('kind-bars').innerHTML = renderBar('Fijos',fijo,total,'#185FA5') + renderBar('Variables',variable,total,'#BA7517');
+  document.getElementById('kind-bars').innerHTML = renderBar('Fijos',fijo,total,'#4f9eff') + renderBar('Variables',variable,total,'#f59e0b');
   const byMember = {};
   txs.forEach(t => { byMember[t.member] = (byMember[t.member]||0) + Number(t.amount); });
   const mEl = document.getElementById('member-bars');
   mEl.innerHTML = Object.keys(byMember).length
-    ? Object.entries(byMember).sort((a,b)=>b[1]-a[1]).map(([m,v])=>renderBar(m,v,total,'#7F77DD')).join('')
+    ? Object.entries(byMember).sort((a,b)=>b[1]-a[1]).map(([m,v])=>renderBar(m,v,total,'#a78bfa')).join('')
     : '<div class="empty">Sin gastos este mes</div>';
   renderTrend();
 }
@@ -295,12 +355,16 @@ function renderTrend() {
   trendChart = new Chart(document.getElementById('trend-chart').getContext('2d'), {
     type: 'bar',
     data: { labels, datasets: [
-      { label:'Ingresos', data:incomes, backgroundColor:'#5DCAA5', borderRadius:4 },
-      { label:'Gastos', data:expenses, backgroundColor:'#F0997B', borderRadius:4 }
+      { label:'Ingresos', data:incomes, backgroundColor:'rgba(34,200,122,0.7)', borderRadius:5 },
+      { label:'Gastos', data:expenses, backgroundColor:'rgba(255,95,87,0.65)', borderRadius:5 }
     ]},
-    options: { responsive:true, maintainAspectRatio:false,
+    options: {
+      responsive:true, maintainAspectRatio:false,
       plugins:{ legend:{ display:false } },
-      scales:{ x:{ ticks:{ autoSkip:false } }, y:{ ticks:{ callback: v=>'$'+v.toLocaleString() } } }
+      scales:{
+        x:{ ticks:{ autoSkip:false, color:'#55555f', font:{size:12} }, grid:{ color:'rgba(255,255,255,0.04)' } },
+        y:{ ticks:{ callback: v=>'$'+v.toLocaleString(), color:'#55555f', font:{size:12} }, grid:{ color:'rgba(255,255,255,0.04)' } }
+      }
     }
   });
 }
@@ -310,18 +374,18 @@ function renderGoals() {
   if (!allGoals.length) { el.innerHTML='<div class="empty">Sin metas todavía</div>'; return; }
   el.innerHTML = allGoals.map(g => {
     const pct = Math.min(100, Math.round(g.saved/g.target*100));
-    const color = pct>=100?'#1D9E75':pct>=50?'#378ADD':'#BA7517';
+    const color = pct>=100?'#22c87a':pct>=50?'#4f9eff':'#f59e0b';
     return `<div class="goal-item">
       <div class="goal-header">
         <span class="goal-name">${g.name}</span>
         <span style="display:flex;gap:6px;align-items:center">
-          <span style="font-size:13px;color:#888">${fmt(g.saved)} / ${fmt(g.target)}</span>
-          <button class="btn btn-sm" onclick="addToGoal(${g.id},${g.target})">+ Abonar</button>
+          <span style="font-size:12px;color:#8b8b99">${fmt(g.saved)} / ${fmt(g.target)}</span>
+          <button class="btn btn-sm" onclick="addToGoal(${g.id})">+ Abonar</button>
           <button class="btn btn-sm btn-danger" onclick="deleteGoal(${g.id})">×</button>
         </span>
       </div>
       <div class="bar-bg"><div class="bar-fill" style="width:${pct}%;background:${color}"></div></div>
-      <div style="font-size:11px;color:#888;margin-top:4px">${pct}% completado</div>
+      <div style="font-size:11px;color:#55555f;margin-top:5px">${pct}% completado</div>
     </div>`;
   }).join('');
 }
@@ -348,7 +412,7 @@ async function addTransaction() {
     allTransactions.unshift(data[0]);
     document.getElementById('f-desc').value = '';
     document.getElementById('f-amount').value = '';
-    toast('Guardado correctamente');
+    toast('Guardado');
     renderAll();
   }
   btn.disabled = false; btn.textContent = 'Guardar';
@@ -375,8 +439,8 @@ async function addGoal() {
   }
 }
 
-async function addToGoal(id, target) {
-  const abonoStr = prompt('¿Cuánto quieres abonar a esta meta?');
+async function addToGoal(id) {
+  const abonoStr = prompt('¿Cuánto quieres abonar?');
   const abono = parseFloat(abonoStr);
   if (!abono || abono<=0) return;
   const g = allGoals.find(g=>g.id===id);
